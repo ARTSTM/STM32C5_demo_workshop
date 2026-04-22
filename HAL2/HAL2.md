@@ -1,21 +1,14 @@
 # HAL2 Drivers
 ## Important links
-
-> Landing page
-
-> Getting started with STM32Cube ecosystem: [https://stm32cubedocs-dev.st.com/stm32cube-docs/stm32cube-getting-started/1.1.1/en/index.html](https://stm32cubedocs-dev.st.com/stm32cube-docs/stm32cube-getting-started/1.1.1/en/index.html)
-
-
-
-> STM32Cube Embedded SW online documentation: [https://dev.st.com/stm32cube-docs/embedded-software/2.0.0/en/index.html](https://dev.st.com/stm32cube-docs/embedded-software/2.0.0/en/index.html)
-
-> STM32 HAL/LL Drivers Documentation: [https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/index.html](https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/index.html)
-
-> Configure your STM32Cube SW package: [STM32 Package Creator](https://dev.st.com/stm32pc/)
-
-> Download specific example: [STM32 Example Library](https://dev.st.com/stm32-example-library/)
-
-> GitHub repository for STM32Cube embedded SW [STMicroelectronics GitHub](https://github.com/stmicroelectronics) ([STM32CubeC5](https://github.com/STMicroelectronics/STM32CubeC5))
+|Content|Link|
+|-:|-|
+| Landing page - entry point: | [https://dev.st.com/stm32cube-docs/stm32cubedocs-landing-page/en/index.html](https://dev.st.com/stm32cube-docs/stm32cubedocs-landing-page/en/index.html) |
+| **Getting started** with STM32Cube ecosystem: | [https://stm32cubedocs-dev.st.com/stm32cube-docs/stm32cube-getting-started/1.1.1/en/index.html](https://stm32cubedocs-dev.st.com/stm32cube-docs/stm32cube-getting-started/1.1.1/en/index.html) |
+|STM32Cube Embedded SW online documentation: |[https://dev.st.com/stm32cube-docs/embedded-software/2.0.0/en/index.html](https://dev.st.com/stm32cube-docs/embedded-software/2.0.0/en/index.html)|
+|STM32 HAL/LL Drivers Documentation: |[https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/index.html](https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/index.html)|
+|Configure your STM32Cube SW package with **STM32 Package Creator**: |[https://dev.st.com/stm32pc/](https://dev.st.com/stm32pc/)|
+|Download specific example from **Example library**: |[https://dev.st.com/stm32-example-library/](https://dev.st.com/stm32-example-library/)|
+|**GitHub repository** for STM32Cube embedded SW |[STMicroelectronics GitHub](https://github.com/stmicroelectronics) ([STM32CubeC5](https://github.com/STMicroelectronics/STM32CubeC5))|
 
 ## Rationale behind HAL2
 
@@ -42,34 +35,10 @@ HAL2 services now exclusively call LL functions instead of direct register acces
 HAL1 vs HAL2 - GPIO Initialization example:
 
 ![](imgs/HAL1vsHal2.png)
+
 HAL**1** - **LL** - GPIO Initialization example:
-```cpp
-__STATIC_INLINE void LL_GPIO_SetAFPin_0_7(GPIO_TypeDef *GPIOx, uint32_t Pin, uint32_t Alternate)
-{
-  MODIFY_REG(GPIOx->AFR[0], (GPIO_AFRL_AFSEL0 << (POSITION_VAL(Pin) * GPIO_AFRL_AFSEL1_Pos)),
-             (Alternate << (POSITION_VAL(Pin) * GPIO_AFRL_AFSEL1_Pos)));
-}
-__STATIC_INLINE void LL_GPIO_SetPinMode(GPIO_TypeDef *GPIOx, uint32_t Pin, uint32_t Mode)
-{
-  MODIFY_REG(GPIOx->MODER, (GPIO_MODER_MODE0 << (POSITION_VAL(Pin) * GPIO_MODER_MODE1_Pos)),
-             (Mode << (POSITION_VAL(Pin) * GPIO_MODER_MODE1_Pos)));
-}
-```
 
-HAL**2** - **LL** - GPIO Initialization example: 
-```cpp
-__STATIC_INLINE void LL_GPIO_SetAFPin_0_7(GPIO_TypeDef *gpiox, uint32_t pin, uint32_t alternate)
-{
-  STM32_ATOMIC_MODIFY_REG_32(gpiox->AFR[0], (GPIO_AFRL_AFSEL0 << (STM32_POSITION_VAL(pin) * 4U)),
-                             (alternate << (STM32_POSITION_VAL(pin) * 4U)));
-}
-__STATIC_INLINE void LL_GPIO_SetPinSpeed(GPIO_TypeDef *gpiox, uint32_t pin, uint32_t  speed)
-{
-  STM32_ATOMIC_MODIFY_REG_32(gpiox->OSPEEDR, (GPIO_OSPEEDR_OSPEED0 << (STM32_POSITION_VAL(pin) * 2U)),
-                             (speed << (STM32_POSITION_VAL(pin) * 2U)));
-}
-
-```
+![](imgs/HAL1vsHAL2_LL.png)
 ## Init vs SetConfig
 [more details here](https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/breaking_concepts/breaking_concepts_concept_A.html)
 - HAL_..._Init() - initializes handler structure and link instance - big difference in HAL1 - no more the same function.
@@ -78,73 +47,32 @@ __STATIC_INLINE void LL_GPIO_SetPinSpeed(GPIO_TypeDef *gpiox, uint32_t pin, uint
   - global configuration (e.g., UART)
   - additional sub-block configuration (e.g., TIM requires a global configuration and may also require at least one channel configuration if used in output or input compare mode) see [here](https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/docs/overview/hal_data_structure_and_types.html#hal-configuration-structures)
 
-HAL1 MX_USART1_UART_Init() example:
+HAL1 Init() vs HAL2 Init() and SetConfig()-  example:
+
+![](imgs/HAL1vsHAL2_Init_config.png)
+
+## No global handles
+Each peripheral handle is static, defined in the dedicated mx_ .c file. The handle can be accessed using getter function.
+
+example for mx_spi1.c:
 ```cpp
-UART_HandleTypeDef huart1;  // global handler
-
-static void MX_USART1_UART_Init(void)
-{
-  huart1.Instance = USART1;   // <---- USART peripheral instance
-  huart1.Init.BaudRate = 115200;
-  ...
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-// GPIO configuration in separate _msp file
-```
-HAL2 mx_usart1_uart_init() example:
-```cpp
-static hal_uart_handle_t hUSART1;  // static handler
-
-hal_uart_handle_t *mx_usart1_uart_init(void)
-{
-  hal_uart_config_t uart_config;
-
-  /* Basic configuration */
-  if (HAL_UART_Init(&hUSART1, HAL_UART1) != HAL_OK)  // <---- Initialize handler structure (and link USART peripheral instance)
-  {
-    return NULL;
-  }
-
-  HAL_RCC_USART1_EnableClock();
-
-  if (HAL_RCC_USART1_SetKernelClkSource(HAL_RCC_USART1_CLK_SRC_PCLK2) != HAL_OK)
-  {
-    return NULL;
-  }
-
-  uart_config.baud_rate = 115200;
-  uart_config.clock_prescaler = HAL_UART_PRESCALER_DIV1;
-  ...
-  uart_config.one_bit_sampling = HAL_UART_ONE_BIT_SAMPLE_DISABLE;
-
-  if (HAL_UART_SetConfig(&hUSART1, &uart_config) != HAL_OK)  // <---- Set config - configure peripheral registers
-  {
-    return NULL;
-  }
-
-// GPIO config in this function body...
+/* Handle for SPI1 */
+static hal_spi_handle_t hSPI1;
 ...
-
+hal_spi_handle_t *mx_spi1_gethandle(void)
+{
+  return &hSPI1;
 }
 ```
-
+... then either:
+```cpp
+hal_spi_handle_t *hspi1 = mx_spi1_gethandle();
+HAL_SPI_TransmitReceive(hspi1, tx_buf, rx_buf, buf_size, HAL_MAX_DELAY);
+```
+or:
+```cpp
+HAL_SPI_TransmitReceive(mx_spi1_gethandle(), tx_buf, rx_buf, buf_size, HAL_MAX_DELAY);
+```
 ## Better code handling and debuging
 [more details here](https://dev.st.com/stm32cube-docs/stm32c5xx-hal-drivers/2.0.0/en/docs/overview/hal_data_structure_and_types.html#hal-parameter-types)
 
@@ -157,11 +85,13 @@ thanks to enumeration types:
 ![](imgs/HAL1macroHAL2enum.png)
 
 ## *xxxx_MspInit()* or *xxxx_hal_msp.c* not used any more
+[more details here](https://dev.st.com/stm32cube-docs/hal1-to-hal2-migration/1.0.0/en/docs/markup/drivers_documentation/breaking_concepts/breaking_concepts_concept_L.html#remove-the-global-msp-file)
+
 Weak MSP initialization function are not used anymore and xxxx_hal_msp.c file is not generated.
 
 All the initialization including GPIO, clocks... is in the **dedicated mx_ .c file**
 
-The mx_ .c file also contains interrupt handler.
+The mx_ .c file also contains interrupt handler. The file stm32xxx_it.c was also removed.
 
 ![](imgs/sources.png)
 
@@ -181,19 +111,7 @@ Once the feature is enabled, it allows to associate user object (variable, struc
 ![](imgs/commonSettings.png)
 
 ![](imgs/UartSettings.png)
-## No global handles
-Each peripheral handle is static, defined in the dedicated mx_ .c file. The handle can be accessed using getter function.
 
-example for mx_usart1.c:
-```cpp
-/* Handle for UART */
-static hal_uart_handle_t hUSART1;
-...
-hal_uart_handle_t *mx_usart1_uart_gethandle(void)
-{
-  return &hUSART1;
-}
-```
 ## Improved footprint
 HAL vs HAL2 drivers comparision
 
