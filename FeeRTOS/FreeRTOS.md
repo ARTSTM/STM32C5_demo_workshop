@@ -80,8 +80,9 @@ We need to activate USART2. We will use most of the default settings,
 ![Final Pinout](_htmresc/USART_main_features.png)
 
 except pins selection.
-USART2_TX - PA2
-USART2_RX - PA3
+We will use:
+- USART2_TX - PA2
+- USART2_RX - PA3
 
 ![Final Pinout](_htmresc/USART_pins.png)
 
