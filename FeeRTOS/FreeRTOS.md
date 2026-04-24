@@ -109,7 +109,7 @@ Let's start from tasks.
 
 ![Tasks creation](_htmresc/tasks.png)
 
-Now let's switch to Binary Semamphores
+Now let's switch to Binary Semaphores
 
 ![Semaphore creation](_htmresc/semaphore.png)
 
@@ -141,9 +141,11 @@ Accept project settings generation from the bottom right pop-up.
 
 In case you missed it, please click on the "bell" icon.
 
-In case you click either "No" or "Do not show it again"
+![bell](_htmresc/bell.png)
 
-xxx
+In case you click either "No" or "Do not show it again" please use "Setup STM32 project" in STM32Cube section (see below):
+
+![prj_setup](_htmresc/Prj_setup.gif)
 
 After the while your project is ready to be updated.
 Open two files:
@@ -153,8 +155,6 @@ Open two files:
 
 ### Coding part
 By default FreeRTOS is neither configured nor started within the application.
-
-You will not find it within call of xxx
 
 We need first to include header file with FreeRTOS functions deifinitions by:
 
@@ -189,7 +189,7 @@ static void LED_blink_app(void *pvParameters)
 }
 ```
 
-UART_send task should send a consecutive number 0..9, 0 each second over USART2
+UART_send task should send "a" character each second over USART2
 Thus we can use the following application code:
 
 ```bash
@@ -217,7 +217,7 @@ void HAL_EXTI_TriggerCallback(hal_exti_handle_t *hexti, hal_exti_trigger_t trigg
   xSemaphoreGiveFromISR(sem1_Handle, pxHigherPriorityTaskWoken);
 }
 ```
-Once the coding part is done we can build the application and strart the debug session.
+Once the coding part is done we can build the application and start the debug session.
 
 ### Build the application
 To build the application we can save all active files by:
@@ -268,10 +268,10 @@ Once debug session will be active we can see:
 
 ![debug_bar](_htmresc/debug_bar.png)
 
-- on the bottom window an additional tab called RTOS-xxx. It will display data about FreeRTOS components once we pause the code execution (by default there is no live monitor).
+- on the bottom window an additional tab called STM32CUBE_RTOS. It will display data about FreeRTOS components once we pause the code execution (by default there is no live monitor).
 
 To test it.
-Start an application, after the wile pause it and see an effect on the board and in RTOS-0xxx window.
+Start an application, after the wile pause it and see an effect on the board and in STM32CUBE_RTOS window.
 
 That's it. We can stop debug session, by pressing STOP icon
 
